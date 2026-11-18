@@ -2,6 +2,25 @@
 
 Working codename in the build brief: DONE. The product name in code, UI, and docs is **Ripple**.
 
+Current stage: **1 complete**. Next: Stage 2, persisted recipes and the detail page.
+
+## Stage 1 report
+
+```text
+PRODUCT: Ripple
+STAGE: 1
+STATUS: PASS
+USER-FACING WORKING FLOWS: Explore loads from SQLite. Search and topic filters submit with a normal form. An empty database says the library is empty. A query with no match says nothing matches. An unknown address shows a 404 with a way back. My Runs, Create, and Profile are switched off and point at an explanation. They do not navigate to a blank page.
+UI/UX: Inspected Explore at 390×844 and 1440×900 (docs/screenshots/01-explore-empty-390.png, 01-explore-empty-1440.png, 01-explore-no-results-390.png). Skip link is the first tab stop. Search has a visible label. Focus ring is the ink outline. Topic chips wrap instead of clipping. The empty-library card sits above the mobile nav. Lime is used as a button fill with ink text. Muted text #4A4E59 on #FAFAF7 is the secondary copy color. Reduced motion collapses transitions. Loading skeleton exists for the results region.
+DATA + SECURITY: Migration 0001 creates users and workflows. Explore returns only public rows with a published version id. Private and unpublished rows are excluded (unit tested). No sessions, secrets, or accounts yet. Cache Components are off so personalized pages are not introduced behind a shared cache.
+TESTS: npm run lint -> pass. npm run typecheck -> pass. npm test -> pass, 6 tests. npm run build -> pass (Next.js 16.4.6). npm run test:e2e -> pass, 1 Chromium test, including the 404 and both widths.
+REAL INTEGRATIONS: SQLite via better-sqlite3 | SANDBOX: none | DISABLED: email, OAuth, payments, browser automation, recipe execution
+FILES CHANGED: Next.js app, design tokens, shell, Explore, Drizzle schema and migration, Vitest, Playwright, README, screenshots.
+OPEN BUGS/RISKS: The switched-off navigation explanation sits in the footer, so on a phone it is below the first screen; tapping those items scrolls to it. Hosted Postgres is still not wired. Low-severity npm audit finding was left unpatched rather than applying an unreviewed audit fix.
+NEXT STAGE PROPOSAL: Seed three DEMO recipes with typed steps and permission text. Link cards to a detail page. Keep Run visibly unavailable until execution exists.
+AWAITING APPROVAL: NO — the owner pre-approved stages 0–6. This report is the stage record.
+```
+
 ## Stage 0 report
 
 ```text
