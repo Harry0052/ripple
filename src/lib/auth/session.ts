@@ -83,3 +83,33 @@ export async function getOrCreateGuest(db: RippleDb, options?: { secure?: boolea
     email: null,
   };
 }
+
+export async function replaceSession(db: RippleDb, userId: string, secure: boolean) {
+  const token = randomBytes(32).toString("base64url");
+  const createdAt = new Date().toISOString();
+  db.delete(sessions).where(eq(sessions.userId, userId)).run();
+  db.insert(sessions)
+    .values({
+      id: randomUUID(),
+      userId,
+      tokenHash: hashToken(token),
+      createdAt,
+      expiresAt: expiresAt(),
+    })
+    .run();
+  const jar = await cookies();
+  jar.set(COOKIE, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: THIRTY_DAYS_SECONDS,
+    secure,
+  });
+}
+
+export async function logout(db: RippleDb) {
+  const jar = await cookies();
+  const token = jar.get(COOKIE)?.value;
+  if (token) db.delete(sessions).where(eq(sessions.tokenHash, hashToken(token))).run();
+  jar.set(COOKIE, "", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 0 });
+}

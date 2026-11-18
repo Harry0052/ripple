@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { LogoutButton } from "@/components/product/logout-button";
 import { readSessionUser } from "@/lib/auth/session";
 import { getDb } from "@/lib/db/client";
 import { listRuns } from "@/lib/runs/service";
@@ -22,9 +24,19 @@ export default async function ProfilePage() {
             @{user.handle} · {user.kind}
           </p>
           <p className="mt-3 text-sm leading-6 text-muted">
-            This is a guest session stored in an httpOnly cookie. Email signup is not available yet,
-            so this session cannot be opened on another device.
+            {user.kind === "guest"
+              ? "This is a guest session in an httpOnly cookie. Create an account to publish, and this browser keeps these runs."
+              : `Signed in as ${user.email ?? user.handle}. The password is stored as a hash.`}
           </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {user.kind === "guest" ? (
+              <Link href="/signup" className="inline-flex min-h-12 items-center rounded-full bg-lime px-5 font-medium">
+                Create account
+              </Link>
+            ) : (
+              <LogoutButton />
+            )}
+          </div>
           <p className="mt-4 text-sm">
             Verified completed runs in this session: <span className="tabular-nums font-medium">{completed}</span>
           </p>
@@ -33,15 +45,22 @@ export default async function ProfilePage() {
         <section className="mt-6 rounded-3xl border border-dashed border-ink/20 bg-card p-5">
           <h2 className="font-display text-3xl tracking-tight">No session yet</h2>
           <p className="mt-2 text-base leading-7 text-muted">
-            Ripple creates a guest session when you run a recipe. There is no account to sign in to
-            yet.
+            Ripple creates a guest session when you run a recipe. You can also{" "}
+            <Link href="/login" className="underline decoration-lime decoration-2 underline-offset-4">
+              log in
+            </Link>{" "}
+            or{" "}
+            <Link href="/signup" className="underline decoration-lime decoration-2 underline-offset-4">
+              create an account
+            </Link>
+            .
           </p>
         </section>
       )}
       <section className="mt-4 rounded-3xl border border-line bg-card p-5">
         <h2 className="font-display text-2xl tracking-tight">Not connected</h2>
         <ul className="mt-3 list-disc space-y-1 pl-5 text-sm leading-6 text-muted">
-          <li>Email delivery is off. No provider is configured.</li>
+          <li>Password reset email is off. No mail provider is configured.</li>
           <li>OAuth and third-party accounts are off.</li>
           <li>Payments are off. Ripple does not move money.</li>
         </ul>

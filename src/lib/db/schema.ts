@@ -25,6 +25,7 @@ export const workflows = sqliteTable(
     estimatedMinutes: integer("estimated_minutes").notNull(),
     origin: text("origin").notNull(),
     publishedVersionId: text("published_version_id"),
+    draftVersionId: text("draft_version_id"),
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
   },
@@ -47,6 +48,9 @@ export const workflowVersions = sqliteTable(
     testStatus: text("test_status").notNull(),
     publishedAt: text("published_at"),
     lastVerifiedAt: text("last_verified_at"),
+    definitionHash: text("definition_hash"),
+    sampleInputsJson: text("sample_inputs_json").notNull(),
+    intendedVisibility: text("intended_visibility").notNull(),
     createdAt: text("created_at").notNull(),
   },
   (table) => [

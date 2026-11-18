@@ -35,7 +35,7 @@ export type WorkflowRead =
   | { status: "not-found" }
   | { status: "unreadable"; title: string; slug: string };
 
-export function getPublicWorkflow(db: RippleDb, slug: string): WorkflowRead {
+export function getPublicWorkflow(db: RippleDb, slug: string, viewerId?: string | null): WorkflowRead {
   if (!slugSchema.test(slug) || slug.length > 80) return { status: "not-found" };
 
   const row = db
@@ -48,6 +48,7 @@ export function getPublicWorkflow(db: RippleDb, slug: string): WorkflowRead {
       estimatedMinutes: workflows.estimatedMinutes,
       origin: workflows.origin,
       visibility: workflows.visibility,
+      ownerId: workflows.ownerId,
       creatorHandle: users.handle,
       creatorName: users.displayName,
       versionId: workflowVersions.id,
@@ -71,7 +72,9 @@ export function getPublicWorkflow(db: RippleDb, slug: string): WorkflowRead {
     .where(eq(workflows.slug, slug))
     .get();
 
-  if (!row || row.visibility !== "public" || row.versionStatus !== "published") {
+  if (!row || row.versionStatus !== "published") return { status: "not-found" };
+  const owner = viewerId != null && row.ownerId === viewerId;
+  if (row.visibility !== "public" && !owner) {
     return { status: "not-found" };
   }
 

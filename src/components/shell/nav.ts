@@ -12,10 +12,10 @@ export const NAV_ITEMS = [
     reason: "Your private run history.",
   },
   {
-    href: "#not-built",
+    href: "/create",
     label: "Create",
-    available: false,
-    reason: "The recipe editor is not built yet.",
+    available: true,
+    reason: "Write and publish a recipe.",
   },
   {
     href: "/profile",

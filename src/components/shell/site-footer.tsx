@@ -3,8 +3,8 @@ export function SiteFooter() {
     <footer className="border-t border-line">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-sm leading-6 text-muted">
         <p id="not-built">
-          Create is switched off. Ripple can run a recipe and keep the record in this browser.
-          Publishing an account and editing a recipe are not available yet.
+          Accounts use an email and a password stored as a hash. OAuth, payments, and outbound
+          email are not connected.
         </p>
         <p>Ripple does not sign in to other websites, move money, or send email.</p>
       </div>

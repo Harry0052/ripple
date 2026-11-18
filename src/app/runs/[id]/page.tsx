@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RunActions } from "@/components/product/run-actions";
+import { Badge } from "@/components/ui/badge";
 import { StatusPill } from "@/components/ui/status-pill";
 import { readSessionUser } from "@/lib/auth/session";
 import { getDb } from "@/lib/db/client";
@@ -31,6 +32,7 @@ export default async function RunConsolePage(props: { params: Promise<{ id: stri
       </Link>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <h1 className="font-display text-5xl tracking-tight">{run.workflowTitle}</h1>
+        {run.purpose === "dry_run" ? <Badge>Dry run</Badge> : null}
         <StatusPill status={run.status} />
       </div>
       <p className="mt-3 text-sm text-muted" aria-live="polite">

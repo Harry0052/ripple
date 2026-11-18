@@ -14,6 +14,7 @@
     "db:setup": "tsx src/lib/db/setup.ts"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "better-sqlite3": "13.2.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",

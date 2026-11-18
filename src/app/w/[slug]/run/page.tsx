@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { RunForm } from "@/components/product/run-form";
+import { readSessionUser } from "@/lib/auth/session";
 import { getDb } from "@/lib/db/client";
 import { getPublicWorkflow } from "@/lib/workflows/detail";
 
@@ -11,7 +12,9 @@ export const metadata: Metadata = { title: "Preview and run" };
 
 export default async function RunPreviewPage(props: { params: Promise<{ slug: string }> }) {
   const { slug } = await props.params;
-  const detail = getPublicWorkflow(getDb(), slug);
+  const db = getDb();
+  const user = await readSessionUser(db);
+  const detail = getPublicWorkflow(db, slug, user?.id ?? null);
   if (detail.status === "not-found") notFound();
   if (detail.status === "unreadable") {
     return (

@@ -58,6 +58,9 @@ export function seedDemoWorkflows(db: RippleDb) {
           testStatus: "untested",
           publishedAt: DEMO_PUBLISHED_AT,
           lastVerifiedAt: null,
+          definitionHash: null,
+          sampleInputsJson: "{}",
+          intendedVisibility: "public",
           createdAt: DEMO_PUBLISHED_AT,
         })
         .run();

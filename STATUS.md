@@ -2,7 +2,24 @@
 
 Working codename in the build brief: DONE. The product name in code, UI, and docs is **Ripple**.
 
-Current stage: **3 complete**. Next: Stage 4, draft, dry-run, and immutable publish.
+Current stage: **4 complete**. Next: Stage 5, share links, reports, and rate limits.
+
+## Stage 4 report
+
+```text
+PRODUCT: Ripple
+STAGE: 4
+STATUS: PASS
+USER-FACING WORKING FLOWS: Signup stores an email and a bcrypt password hash and can upgrade a guest session in place. A member can create a draft from the four allowed blocks, dry-run the sample inputs, and publish. Publish is refused until that dry run succeeds. Editing after publish starts a new version. A run of version 1 still shows its original sentence after version 2 is published. Another account cannot edit the draft. Guests are told to create an account before Create will save anything.
+UI/UX: Studio at 390px and the published state at 1440px (docs/screenshots/04-studio-390.png, 04-published-1440.png). The editor names the block types it allows. Publish stays disabled until the dry run succeeds. The published screen says the version is frozen.
+DATA + SECURITY: Migration 0004 adds draft pointers and a definition hash. Published version rows are not updated when a later draft changes. Dry runs are stored with purpose dry_run and do not count as a user verification. Passwords are hashed. Login does not merge a leftover guest session; signup does.
+TESTS: npm run lint -> pass. npm run typecheck -> pass. npm test -> pass, 18 tests. npm run test:e2e -> pass, 4 Chromium tests, including signup, publish v1, run, publish v2, and the old run text staying put.
+REAL INTEGRATIONS: SQLite, bcrypt password hashes | SANDBOX: dry-run saves when a recipe contains the demo-form block | DISABLED: password-reset email, OAuth, payments
+FILES CHANGED: accounts, draft editor, publish service, studio and account pages, tests, screenshots.
+OPEN BUGS/RISKS: No password reset, because no email provider is configured. Login is not rate limited yet. The studio does not edit every input-field option; it edits titles, block type, expressions, and templates. Hosted Postgres is still not wired.
+NEXT STAGE PROPOSAL: Public copy-link, a stored report, and rate limits on runs, reports, and login. Keep private runs private.
+AWAITING APPROVAL: NO — the owner pre-approved stages 0–6. This report is the stage record.
+```
 
 ## Stage 3 report
 

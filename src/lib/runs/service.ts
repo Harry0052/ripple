@@ -86,7 +86,7 @@ function isConstraint(error: unknown) {
   );
 }
 
-function validateInputs(steps: WorkflowStep[], inputs: Record<string, string>) {
+export function validateWorkflowInputs(steps: WorkflowStep[], inputs: Record<string, string>) {
   const fields: Record<string, string> = {};
   const values: Record<string, string> = {};
   const allowed = new Set<string>();
@@ -395,13 +395,14 @@ export function listRuns(db: RippleDb, userId: string): RunSummary[] {
 export function assessRun(
   db: RippleDb,
   input: { slug: string; inputs: Record<string, string>; consents: string[] },
+  viewerId?: string | null,
 ): ServiceError | { ok: true } {
-  const detail = getPublicWorkflow(db, input.slug);
+  const detail = getPublicWorkflow(db, input.slug, viewerId);
   if (detail.status === "not-found") return fail(404, "not_found", "That recipe is not available.");
   if (detail.status === "unreadable") {
     return fail(422, "unreadable", "This recipe uses a block Ripple does not run. Nothing started.");
   }
-  const { fields } = validateInputs(detail.steps, input.inputs);
+  const { fields } = validateWorkflowInputs(detail.steps, input.inputs);
   if (Object.keys(fields).length > 0) {
     return fail(422, "validation", "Fix the highlighted fields. Nothing started.", fields);
   }
@@ -417,11 +418,11 @@ export function startRun(
   db: RippleDb,
   input: { userId: string; slug: string; inputs: Record<string, string>; consents: string[]; idempotencyKey: string },
 ): Success<RunView> | ServiceError {
-  const assessed = assessRun(db, input);
+  const assessed = assessRun(db, input, input.userId);
   if (!assessed.ok) return assessed;
-  const detail = getPublicWorkflow(db, input.slug);
+  const detail = getPublicWorkflow(db, input.slug, input.userId);
   if (detail.status !== "ok") return fail(404, "not_found", "That recipe is not available.");
-  const { values } = validateInputs(detail.steps, input.inputs);
+  const { values } = validateWorkflowInputs(detail.steps, input.inputs);
   const steps = detail.steps;
 
   const inputHash = hashInputs(values);
@@ -602,5 +603,122 @@ export function approveEffect(
   });
   const view = getRun(db, runId, userId);
   if (!view) return fail(404, "not_found", "That run is not available.");
+  return { ok: true, data: view };
+}
+
+export function dryRunVersion(
+  db: RippleDb,
+  input: { userId: string; versionId: string; inputs: Record<string, string>; idempotencyKey: string },
+): Success<RunView> | ServiceError {
+  const version = db
+    .select({ version: workflowVersions, ownerId: workflows.ownerId })
+    .from(workflowVersions)
+    .innerJoin(workflows, eq(workflows.id, workflowVersions.workflowId))
+    .where(eq(workflowVersions.id, input.versionId))
+    .get();
+  if (!version || version.ownerId !== input.userId || version.version.status !== "draft") {
+    return fail(404, "not_found", "That draft is not available to dry-run.");
+  }
+  const storedSteps = db
+    .select()
+    .from(workflowSteps)
+    .where(eq(workflowSteps.versionId, input.versionId))
+    .orderBy(asc(workflowSteps.ordinal))
+    .all();
+  const parsedSteps: WorkflowStep[] = [];
+  for (const stored of storedSteps) {
+    const parsed = stepSchema.safeParse(JSON.parse(stored.configJson));
+    if (!parsed.success || parsed.data.type !== stored.stepType) {
+      return fail(422, "unreadable", "This draft uses a block Ripple does not run. Nothing started.");
+    }
+    parsedSteps.push(parsed.data);
+  }
+  const { values, fields } = validateWorkflowInputs(parsedSteps, input.inputs);
+  if (Object.keys(fields).length > 0) {
+    return fail(422, "validation", "The sample inputs do not match the draft. Nothing started.", fields);
+  }
+  const inputHash = hashInputs(values);
+  let runId = "";
+  try {
+    runId = db.transaction((tx) => {
+      const existing = tx
+        .select({ id: runs.id, inputHash: runs.inputHash })
+        .from(runs)
+        .where(and(eq(runs.initiatedBy, input.userId), eq(runs.idempotencyKey, input.idempotencyKey)))
+        .get();
+      if (existing) {
+        if (existing.inputHash !== inputHash) {
+          throw Object.assign(new Error("idempotency conflict"), { code: "IDEMPOTENCY" });
+        }
+        return existing.id;
+      }
+      const id = randomUUID();
+      const startedAt = nowIso();
+      tx.insert(runs)
+        .values({
+          id,
+          versionId: input.versionId,
+          initiatedBy: input.userId,
+          status: "running",
+          purpose: "dry_run",
+          idempotencyKey: input.idempotencyKey,
+          inputHash,
+          inputsJson: JSON.stringify(values),
+          contextJson: JSON.stringify(values),
+          startedAt,
+          completedAt: null,
+          cancelledAt: null,
+        })
+        .run();
+      for (const stored of storedSteps) {
+        tx.insert(runSteps)
+          .values({
+            id: randomUUID(),
+            runId: id,
+            stepId: stored.id,
+            status: "pending",
+            safeResultJson: null,
+            error: null,
+            attempt: 1,
+            startedAt: null,
+            finishedAt: null,
+          })
+          .run();
+        tx.insert(approvals)
+          .values({
+            id: randomUUID(),
+            runId: id,
+            stepId: stored.id,
+            actorId: input.userId,
+            decision: "allow",
+            consentText: "Creator authorized this dry run.",
+            createdAt: startedAt,
+          })
+          .run();
+        if (stored.stepType === "demo_form") {
+          tx.insert(approvals)
+            .values({
+              id: randomUUID(),
+              runId: id,
+              stepId: stored.id,
+              actorId: input.userId,
+              decision: "approve_effect",
+              consentText: "Creator approved this dry-run save on Ripple.",
+              createdAt: startedAt,
+            })
+            .run();
+        }
+      }
+      execute(tx, id);
+      return id;
+    });
+  } catch (error) {
+    if (error instanceof Error && "code" in error && (error as { code?: string }).code === "IDEMPOTENCY") {
+      return fail(409, "conflict", "That dry-run key was already used with different inputs.");
+    }
+    throw error;
+  }
+  const view = getRun(db, runId, input.userId);
+  if (!view) return fail(404, "not_found", "The dry run could not be read back.");
   return { ok: true, data: view };
 }

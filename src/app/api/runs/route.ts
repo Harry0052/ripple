@@ -27,9 +27,10 @@ export async function POST(request: Request) {
     return jsonError(422, "validation", "Check the recipe, values, and submit key.");
   }
   const db = getDb();
-  const assessed = assessRun(db, parsed.data);
+  const existing = await readSessionUser(db);
+  const assessed = assessRun(db, parsed.data, existing?.id ?? null);
   if (!assessed.ok) return Response.json({ error: assessed.error }, { status: assessed.status });
-  const user = await getOrCreateGuest(db, { secure: requestIsSecure(request) });
+  const user = existing ?? (await getOrCreateGuest(db, { secure: requestIsSecure(request) }));
   const result = startRun(db, { userId: user.id, ...parsed.data });
   if (!result.ok) return Response.json({ error: result.error }, { status: result.status });
   return Response.json({ run: result.data });
