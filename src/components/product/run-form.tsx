@@ -14,7 +14,17 @@ type RunStep = {
   fields?: InputField[];
 };
 
-export function RunForm({ slug, title, steps }: { slug: string; title: string; steps: RunStep[] }) {
+export function RunForm({
+  slug,
+  title,
+  steps,
+  permissions,
+}: {
+  slug: string;
+  title: string;
+  steps: RunStep[];
+  permissions: string[];
+}) {
   const router = useRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [pending, setPending] = useState(false);
@@ -127,6 +137,14 @@ export function RunForm({ slug, title, steps }: { slug: string; title: string; s
           </label>
         </fieldset>
       ))}
+      <section className="rounded-3xl border border-line bg-card p-5">
+        <h2 className="font-display text-2xl tracking-tight">You are allowing Ripple to</h2>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6">
+          {permissions.map((permission) => (
+            <li key={permission}>{permission}</li>
+          ))}
+        </ul>
+      </section>
       {message ? (
         <p role="alert" className="rounded-2xl bg-danger-bg px-4 py-3 text-sm text-danger">
           {message}

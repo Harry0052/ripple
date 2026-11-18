@@ -37,6 +37,10 @@ test("a visitor can search and inspect a stored demo recipe", async ({ page }) =
     "href",
     "/w/split-a-bill/run",
   );
+  await page.getByLabel("Reason").selectOption("spam");
+  await page.getByLabel("Details").fill("The steps are clear, this is only a test report.");
+  await page.getByRole("button", { name: "Submit report" }).click();
+  await expect(page.getByText("Report stored on Ripple.")).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: "docs/screenshots/02-detail-bill-390.png" });
   await page.setViewportSize({ width: 1440, height: 900 });

@@ -16,6 +16,7 @@ export type PublicWorkflow = {
   category: string;
   estimatedMinutes: number;
   origin: string;
+  visibility: string;
   creatorHandle: string;
   creatorName: string;
   versionId: string;
@@ -119,8 +120,9 @@ export function getPublicWorkflow(db: RippleDb, slug: string, viewerId?: string 
     summary: row.summary,
     category: row.category,
     estimatedMinutes: row.estimatedMinutes,
-    origin: row.origin,
-    creatorHandle: row.creatorHandle,
+origin: row.origin,
+      visibility: row.visibility,
+      creatorHandle: row.creatorHandle,
     creatorName: row.creatorName,
     versionId: row.versionId,
     version: row.version,

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import type { RippleDb } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
+import { consumeRateLimit, LIMITS } from "@/lib/security/rate-limit";
 import { hashPassword, verifyPassword } from "./password";
 import { readSessionUser, replaceSession, type SessionUser } from "./session";
 
@@ -52,6 +53,9 @@ export async function signup(
   if (Object.keys(account.fields).length > 0) {
     return { ok: false as const, status: 422, error: { code: "validation", message: "Check the account fields.", fields: account.fields } };
   }
+  if (!consumeRateLimit(db, `signup:${account.email}`, LIMITS.signup.limit, LIMITS.signup.windowMs)) {
+    return { ok: false as const, status: 429, error: { code: "rate_limited", message: "Too many signup attempts. Nothing was created." } };
+  }
   const emailTaken = db.select({ id: users.id }).from(users).where(eq(users.email, account.email)).get();
   if (emailTaken) {
     return { ok: false as const, status: 409, error: { code: "conflict", message: "That email already has an account." } };
@@ -93,6 +97,9 @@ export async function signup(
 
 export async function login(db: RippleDb, email: string, password: string, secure: boolean) {
   const normalized = email.trim().toLowerCase();
+  if (!consumeRateLimit(db, `login:${normalized}`, LIMITS.login.limit, LIMITS.login.windowMs)) {
+    return { ok: false as const, status: 429, error: { code: "rate_limited", message: "Too many login attempts. Nothing was changed." } };
+  }
   const row = db.select().from(users).where(eq(users.email, normalized)).get();
   if (!row?.passwordHash || !verifyPassword(password, row.passwordHash)) {
     return { ok: false as const, status: 401, error: { code: "unauthorized", message: "Email or password does not match." } };

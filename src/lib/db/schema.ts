@@ -136,6 +136,25 @@ export const approvals = sqliteTable("approvals", {
   createdAt: text("created_at").notNull(),
 });
 
+export const rateBuckets = sqliteTable("rate_buckets", {
+  bucketKey: text("bucket_key").primaryKey(),
+  windowStart: text("window_start").notNull(),
+  count: integer("count").notNull(),
+});
+
+export const reports = sqliteTable("reports", {
+  id: text("id").primaryKey(),
+  workflowId: text("workflow_id")
+    .notNull()
+    .references(() => workflows.id),
+  reporterId: text("reporter_id")
+    .notNull()
+    .references(() => users.id),
+  reason: text("reason").notNull(),
+  details: text("details"),
+  createdAt: text("created_at").notNull(),
+});
+
 export const demoSubmissions = sqliteTable("demo_submissions", {
   id: text("id").primaryKey(),
   runId: text("run_id")

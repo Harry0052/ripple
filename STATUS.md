@@ -2,7 +2,24 @@
 
 Working codename in the build brief: DONE. The product name in code, UI, and docs is **Ripple**.
 
-Current stage: **4 complete**. Next: Stage 5, share links, reports, and rate limits.
+Current stage: **5 complete**. Next: Stage 6, audit, export, CI, and the pilot write-up.
+
+## Stage 5 report
+
+```text
+PRODUCT: Ripple
+STAGE: 5
+STATUS: PASS
+USER-FACING WORKING FLOWS: A public recipe shows its source, version, a copyable public link, and a report form. The link is the recipe, not a run. Submitting a report stores it and says it is not sent to an outside moderator. The run form lists what you are allowing before the button. Runs, dry runs, reports, logins, and signups are rate limited per session or email. Private recipes have no public link and cannot be reported. Private runs stay visible only to the person who started them.
+UI/UX: The recipe page at 390px and 1440px now includes the share and report controls (docs/screenshots/02-detail-bill-390.png and 02-detail-bill-1440.png were recaptured). Copy explains when the clipboard is unavailable. A rate-limit response says nothing new was stored.
+DATA + SECURITY: Migration 0005 adds reports and rate buckets. Report writes require a public published recipe. The limiter is a fixed window in SQLite. Login failures count toward the limit. A repeated submit key still does not create a second run and does not spend the run limit.
+TESTS: npm run lint -> pass. npm run typecheck -> pass. npm test -> pass, 21 tests. npm run test:e2e -> pass, 4 Chromium tests, including a stored report on the bill recipe.
+REAL INTEGRATIONS: SQLite | SANDBOX: none new | DISABLED: outside trust-and-safety review, email, OAuth, payments
+FILES CHANGED: rate limiter, reports, share link, permission summary, tests.
+OPEN BUGS/RISKS: Report and run limits follow the session, so a new guest cookie gets a new budget. There is still no password reset. Hosted Postgres is still not wired.
+NEXT STAGE PROPOSAL: Audit log, account export and deletion, a personal completed-run count, CI, and the deployment and pilot documents. No production-readiness claim.
+AWAITING APPROVAL: NO — the owner pre-approved stages 0–6. This report is the stage record.
+```
 
 ## Stage 4 report
 

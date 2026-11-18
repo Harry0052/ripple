@@ -1,9 +1,17 @@
 import Link from "next/link";
+import { ReportForm } from "@/components/product/report-form";
+import { ShareLink } from "@/components/product/share-link";
 import { Badge } from "@/components/ui/badge";
 import { categoryLabel } from "@/lib/categories";
 import type { WorkflowRead } from "@/lib/workflows/detail";
 
-export function WorkflowDetail({ detail }: { detail: Exclude<WorkflowRead, { status: "not-found" }> }) {
+export function WorkflowDetail({
+  detail,
+  publicUrl,
+}: {
+  detail: Exclude<WorkflowRead, { status: "not-found" }>;
+  publicUrl?: string;
+}) {
   if (detail.status === "unreadable") {
     return (
       <main id="main" className="mx-auto w-full max-w-3xl px-4 py-10">
@@ -90,10 +98,15 @@ export function WorkflowDetail({ detail }: { detail: Exclude<WorkflowRead, { sta
           <InfoBlock title="Done looks like" body={detail.successCriteria} />
           <InfoBlock title="Risks" body={detail.risks} />
           <p className="text-sm leading-6 text-muted">
+            Source:{" "}
             {detail.origin === "demo_seed"
-              ? "Demo content shipped with Ripple. It is not a claim about a live third-party service."
-              : "Published by the person named above."}
+              ? "Demo content shipped with Ripple. It is not a live third-party service."
+              : `${detail.creatorName} (@${detail.creatorHandle}).`}
           </p>
+          {detail.visibility === "public" && publicUrl ? <ShareLink url={publicUrl} /> : null}
+          {detail.visibility === "public" ? <ReportForm workflowId={detail.id} /> : (
+            <p className="text-sm leading-6 text-muted">This recipe is private. There is no public link.</p>
+          )}
         </aside>
       </div>
     </main>

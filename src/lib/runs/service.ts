@@ -14,6 +14,7 @@ import {
 } from "@/lib/db/schema";
 import { EngineError, evaluateExpression } from "@/lib/engine/expression";
 import { applyTransform } from "@/lib/engine/transform";
+import { consumeRateLimit, LIMITS } from "@/lib/security/rate-limit";
 import { getPublicWorkflow } from "@/lib/workflows/detail";
 import { stepSchema, type WorkflowStep } from "@/lib/workflows/steps";
 
@@ -428,6 +429,21 @@ export function startRun(
   const inputHash = hashInputs(values);
   const user = db.select({ id: users.id }).from(users).where(eq(users.id, input.userId)).get();
   if (!user) return fail(404, "not_found", "The session user is not in this database.");
+  const existingRun = db
+    .select({ id: runs.id, inputHash: runs.inputHash })
+    .from(runs)
+    .where(and(eq(runs.initiatedBy, input.userId), eq(runs.idempotencyKey, input.idempotencyKey)))
+    .get();
+  if (existingRun) {
+    if (existingRun.inputHash !== inputHash) {
+      return fail(409, "conflict", "That submit key was already used with different inputs. Nothing new started.");
+    }
+    const replay = getRun(db, existingRun.id, input.userId);
+    if (replay) return { ok: true, data: replay };
+  }
+  if (!consumeRateLimit(db, `run:${input.userId}`, LIMITS.run.limit, LIMITS.run.windowMs)) {
+    return fail(429, "rate_limited", "Too many runs from this session. Nothing started.");
+  }
 
   let runId = "";
   try {
@@ -638,6 +654,21 @@ export function dryRunVersion(
     return fail(422, "validation", "The sample inputs do not match the draft. Nothing started.", fields);
   }
   const inputHash = hashInputs(values);
+  const existingDryRun = db
+    .select({ id: runs.id, inputHash: runs.inputHash })
+    .from(runs)
+    .where(and(eq(runs.initiatedBy, input.userId), eq(runs.idempotencyKey, input.idempotencyKey)))
+    .get();
+  if (existingDryRun) {
+    if (existingDryRun.inputHash !== inputHash) {
+      return fail(409, "conflict", "That dry-run key was already used with different inputs.");
+    }
+    const replay = getRun(db, existingDryRun.id, input.userId);
+    if (replay) return { ok: true, data: replay };
+  }
+  if (!consumeRateLimit(db, `dry:${input.userId}`, LIMITS.run.limit, LIMITS.run.windowMs)) {
+    return fail(429, "rate_limited", "Too many dry runs from this session. Nothing started.");
+  }
   let runId = "";
   try {
     runId = db.transaction((tx) => {
@@ -646,12 +677,7 @@ export function dryRunVersion(
         .from(runs)
         .where(and(eq(runs.initiatedBy, input.userId), eq(runs.idempotencyKey, input.idempotencyKey)))
         .get();
-      if (existing) {
-        if (existing.inputHash !== inputHash) {
-          throw Object.assign(new Error("idempotency conflict"), { code: "IDEMPOTENCY" });
-        }
-        return existing.id;
-      }
+      if (existing) return existing.id;
       const id = randomUUID();
       const startedAt = nowIso();
       tx.insert(runs)

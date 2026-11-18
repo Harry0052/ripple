@@ -41,6 +41,7 @@ export default async function RunPreviewPage(props: { params: Promise<{ slug: st
         <RunForm
           slug={detail.slug}
           title={detail.title}
+          permissions={detail.permissions}
           steps={detail.steps.map((step) => ({
             id: step.id,
             ordinal: step.ordinal,

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { WorkflowDetail } from "@/components/product/workflow-detail";
 import { readSessionUser } from "@/lib/auth/session";
@@ -24,5 +25,8 @@ export default async function WorkflowPage(props: { params: Promise<{ slug: stri
   const user = await readSessionUser(db);
   const detail = getPublicWorkflow(db, slug, user?.id ?? null);
   if (detail.status === "not-found") notFound();
-  return <WorkflowDetail detail={detail} />;
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "localhost";
+  const proto = headerStore.get("x-forwarded-proto") ?? "http";
+  return <WorkflowDetail detail={detail} publicUrl={`${proto}://${host}/w/${detail.slug}`} />;
 }
