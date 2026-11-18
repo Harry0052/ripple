@@ -2,7 +2,24 @@
 
 Working codename in the build brief: DONE. The product name in code, UI, and docs is **Ripple**.
 
-Current stage: **5 complete**. Next: Stage 6, audit, export, CI, and the pilot write-up.
+Current stage: **6 complete**. Pilot has not been run. Do not treat this as a public launch.
+
+## Stage 6 report
+
+```text
+PRODUCT: Ripple
+STAGE: 6
+STATUS: PASS
+USER-FACING WORKING FLOWS: The flows from stages 2–5 still work. Profile shows a person’s verified completed runs for the last 7 days from stored events, not a site-wide chart. They can download their JSON and delete the session’s runs, reports, email, and password hash. Published recipes they owned leave Explore. Another person’s run of a shared demo recipe remains theirs.
+UI/UX: No new primary screen. Profile states what deletion does before the button enables. Screenshots for explore, detail, run, studio, and publish remain in docs/screenshots. Keyboard skip link, labels, and disabled-until-confirmed delete were checked in the automated flows at 390px and 1440px.
+DATA + SECURITY: Migration 0006 adds audit_events and metric_events. Audit rows cover account creation, run start, publish, report, and deletion. Failure logs are JSON on stderr and omit passwords, tokens, and raw inputs. Export omits the password hash and other people’s runs (tested). Authorization checks from earlier stages still hide private runs, private recipes, and unpublished drafts. This is not a penetration test and not a compliance certification.
+TESTS: npm run lint -> pass. npm run typecheck -> pass. npm test -> pass, 22 tests. npm run test:e2e -> pass, 4 Chromium tests. npm run build -> pass as part of the e2e server start. CI workflow: .github/workflows/ci.yml runs lint, typecheck, unit tests, production build, and Playwright on pushes to main.
+REAL INTEGRATIONS: SQLite | SANDBOX: demo-form saves and dry-run saves stay inside Ripple | DISABLED: email, OAuth, payments, browser automation, hosted Postgres (documented, not executed)
+FILES CHANGED: audit and metrics, export/delete, profile count, CI, README, docs/RUNBOOK.md, docs/PILOT.md.
+OPEN BUGS/RISKS: No password reset. Rate limits reset when a guest cookie is cleared. Report review is a table, not a staff tool. The studio does not edit every input-field option. SQLite is the only database CI has run. A public deploy needs a hosted database and a fresh check of HTTPS cookies, backups, and migrations. The pilot in docs/PILOT.md has not been run, so the decision is not to launch.
+NEXT STAGE PROPOSAL: Run the written pilot with 10–30 people and decide from those observations. Do not add external integrations until one is actually configured.
+AWAITING APPROVAL: NO — the owner pre-approved stages 0–6. This is the final stage record.
+```
 
 ## Stage 5 report
 

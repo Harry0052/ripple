@@ -136,6 +136,25 @@ export const approvals = sqliteTable("approvals", {
   createdAt: text("created_at").notNull(),
 });
 
+export const auditEvents = sqliteTable("audit_events", {
+  id: text("id").primaryKey(),
+  actorId: text("actor_id"),
+  action: text("action").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  metadataJson: text("metadata_json").notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
+export const metricEvents = sqliteTable("metric_events", {
+  id: text("id").primaryKey(),
+  userId: text("user_id"),
+  name: text("name").notNull(),
+  workflowId: text("workflow_id"),
+  runId: text("run_id"),
+  createdAt: text("created_at").notNull(),
+});
+
 export const rateBuckets = sqliteTable("rate_buckets", {
   bucketKey: text("bucket_key").primaryKey(),
   windowStart: text("window_start").notNull(),

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import type { RippleDb } from "@/lib/db/client";
 import { reports, workflows } from "@/lib/db/schema";
+import { recordAudit } from "@/lib/observability";
 import { consumeRateLimit, LIMITS } from "@/lib/security/rate-limit";
 
 const reasons = ["misleading", "unsafe", "spam", "other"] as const;
@@ -43,5 +44,12 @@ export function fileReport(
       createdAt: new Date().toISOString(),
     })
     .run();
+  recordAudit(db, {
+    actorId: input.reporterId,
+    action: "report_filed",
+    entityType: "workflow",
+    entityId: workflow.id,
+    metadata: { reason: input.reason },
+  });
   return { ok: true as const };
 }

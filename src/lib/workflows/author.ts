@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { and, asc, desc, eq } from "drizzle-orm";
 import type { RippleDb } from "@/lib/db/client";
 import { users, workflowSteps, workflowVersions, workflows } from "@/lib/db/schema";
+import { recordAudit } from "@/lib/observability";
 import { dryRunVersion } from "@/lib/runs/service";
 import { DEFAULT_DRAFT, draftSchema, type DraftInput } from "./draft";
 import { stepSchema, type WorkflowStep } from "./steps";
@@ -307,6 +308,13 @@ export function publishDraft(db: RippleDb, workflowId: string, userId: string) {
       })
       .where(eq(workflows.id, workflowId))
       .run();
+  });
+  recordAudit(db, {
+    actorId: userId,
+    action: "workflow_published",
+    entityType: "workflow_version",
+    entityId: version.id,
+    metadata: { version: String(version.version), visibility: owned.draft.visibility },
   });
   return { ok: true as const, version: version.version, slug: owned.slug };
 }

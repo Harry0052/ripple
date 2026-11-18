@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import type { RippleDb } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
+import { recordAudit } from "@/lib/observability";
 import { consumeRateLimit, LIMITS } from "@/lib/security/rate-limit";
 import { hashPassword, verifyPassword } from "./password";
 import { readSessionUser, replaceSession, type SessionUser } from "./session";
@@ -78,7 +79,9 @@ export async function signup(
       })
       .where(eq(users.id, current.id))
       .run();
-    return { ok: true as const, user: await finishSession(db, current.id, secure) };
+    const user = await finishSession(db, current.id, secure);
+    recordAudit(db, { actorId: user.id, action: "account_created", entityType: "user", entityId: user.id, metadata: { upgradedGuest: "true" } });
+    return { ok: true as const, user };
   }
   const id = randomUUID();
   db.insert(users)
@@ -92,7 +95,9 @@ export async function signup(
       createdAt: now,
     })
     .run();
-  return { ok: true as const, user: await finishSession(db, id, secure) };
+  const user = await finishSession(db, id, secure);
+  recordAudit(db, { actorId: user.id, action: "account_created", entityType: "user", entityId: user.id, metadata: { upgradedGuest: "false" } });
+  return { ok: true as const, user };
 }
 
 export async function login(db: RippleDb, email: string, password: string, secure: boolean) {

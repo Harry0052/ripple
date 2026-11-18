@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { DeleteAccount } from "@/components/product/delete-account";
 import { LogoutButton } from "@/components/product/logout-button";
 import { readSessionUser } from "@/lib/auth/session";
 import { getDb } from "@/lib/db/client";
-import { listRuns } from "@/lib/runs/service";
+import { completedRunCount, completedRunsInRecentDays } from "@/lib/observability";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +12,8 @@ export const metadata = { title: "Profile" };
 export default async function ProfilePage() {
   const db = getDb();
   const user = await readSessionUser(db);
-  const runs = user ? listRuns(db, user.id) : [];
-  const completed = runs.filter((run) => run.status === "succeeded").length;
+  const completedWeek = user ? completedRunsInRecentDays(db, user.id, 7) : 0;
+  const completed = user ? completedRunCount(db, user.id) : 0;
 
   return (
     <main id="main" className="mx-auto w-full max-w-3xl px-4 pb-16 pt-6 md:pt-10">
@@ -38,8 +39,17 @@ export default async function ProfilePage() {
             )}
           </div>
           <p className="mt-4 text-sm">
-            Verified completed runs in this session: <span className="tabular-nums font-medium">{completed}</span>
+            Verified completed runs in the last 7 days:{" "}
+            <span className="font-medium tabular-nums">{completedWeek}</span>
+            <span className="text-muted"> · {completed} in this session overall</span>
           </p>
+          <p className="mt-2 text-sm text-muted">
+            This count is stored in Ripple. It is not a site-wide or third-party analytics number.
+          </p>
+          <a href="/api/account/export" className="mt-4 inline-flex min-h-12 items-center text-sm font-medium underline decoration-lime decoration-2 underline-offset-4">
+            Download my data
+          </a>
+          <DeleteAccount />
         </section>
       ) : (
         <section className="mt-6 rounded-3xl border border-dashed border-ink/20 bg-card p-5">

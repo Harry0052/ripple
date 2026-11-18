@@ -14,6 +14,7 @@ import {
 } from "@/lib/db/schema";
 import { EngineError, evaluateExpression } from "@/lib/engine/expression";
 import { applyTransform } from "@/lib/engine/transform";
+import { logEvent, recordAudit, recordRunCompleted } from "@/lib/observability";
 import { consumeRateLimit, LIMITS } from "@/lib/security/rate-limit";
 import { getPublicWorkflow } from "@/lib/workflows/detail";
 import { stepSchema, type WorkflowStep } from "@/lib/workflows/steps";
@@ -289,14 +290,17 @@ function execute(tx: RippleDb, runId: string) {
         .set({ status: "failed", contextJson: JSON.stringify(context), completedAt: nowIso() })
         .where(eq(runs.id, runId))
         .run();
+      logEvent("error", "run_step_failed", { runId, stepId: row.stored.id, message });
       return;
     }
   }
 
+  const completedAt = nowIso();
   tx.update(runs)
-    .set({ status: "succeeded", completedAt: nowIso(), contextJson: JSON.stringify(context) })
+    .set({ status: "succeeded", completedAt, contextJson: JSON.stringify(context) })
     .where(eq(runs.id, runId))
     .run();
+  if (run.purpose === "user") recordRunCompleted(tx, { userId: run.initiatedBy, runId });
 }
 
 export function getRun(db: RippleDb, runId: string, userId: string): RunView | null {
@@ -530,6 +534,13 @@ export function startRun(
 
   const view = getRun(db, runId, input.userId);
   if (!view) return fail(404, "not_found", "The run could not be read back.");
+  recordAudit(db, {
+    actorId: input.userId,
+    action: "run_started",
+    entityType: "run",
+    entityId: view.id,
+    metadata: { status: view.status, slug: input.slug },
+  });
   return { ok: true, data: view };
 }
 
