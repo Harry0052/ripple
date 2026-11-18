@@ -1,0 +1,51 @@
+import { readSessionUser } from "@/lib/auth/session";
+import { getDb } from "@/lib/db/client";
+import { listRuns } from "@/lib/runs/service";
+
+export const dynamic = "force-dynamic";
+
+export const metadata = { title: "Profile" };
+
+export default async function ProfilePage() {
+  const db = getDb();
+  const user = await readSessionUser(db);
+  const runs = user ? listRuns(db, user.id) : [];
+  const completed = runs.filter((run) => run.status === "succeeded").length;
+
+  return (
+    <main id="main" className="mx-auto w-full max-w-3xl px-4 pb-16 pt-6 md:pt-10">
+      <h1 className="font-display text-5xl tracking-tight">Profile</h1>
+      {user ? (
+        <section className="mt-6 rounded-3xl border border-line bg-card p-5">
+          <h2 className="font-display text-3xl tracking-tight">{user.displayName}</h2>
+          <p className="mt-2 text-base leading-7">
+            @{user.handle} · {user.kind}
+          </p>
+          <p className="mt-3 text-sm leading-6 text-muted">
+            This is a guest session stored in an httpOnly cookie. Email signup is not available yet,
+            so this session cannot be opened on another device.
+          </p>
+          <p className="mt-4 text-sm">
+            Verified completed runs in this session: <span className="tabular-nums font-medium">{completed}</span>
+          </p>
+        </section>
+      ) : (
+        <section className="mt-6 rounded-3xl border border-dashed border-ink/20 bg-card p-5">
+          <h2 className="font-display text-3xl tracking-tight">No session yet</h2>
+          <p className="mt-2 text-base leading-7 text-muted">
+            Ripple creates a guest session when you run a recipe. There is no account to sign in to
+            yet.
+          </p>
+        </section>
+      )}
+      <section className="mt-4 rounded-3xl border border-line bg-card p-5">
+        <h2 className="font-display text-2xl tracking-tight">Not connected</h2>
+        <ul className="mt-3 list-disc space-y-1 pl-5 text-sm leading-6 text-muted">
+          <li>Email delivery is off. No provider is configured.</li>
+          <li>OAuth and third-party accounts are off.</li>
+          <li>Payments are off. Ripple does not move money.</li>
+        </ul>
+      </section>
+    </main>
+  );
+}

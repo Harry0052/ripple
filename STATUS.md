@@ -2,7 +2,24 @@
 
 Working codename in the build brief: DONE. The product name in code, UI, and docs is **Ripple**.
 
-Current stage: **2 complete**. Next: Stage 3, run one recipe end to end.
+Current stage: **3 complete**. Next: Stage 4, draft, dry-run, and immutable publish.
+
+## Stage 3 report
+
+```text
+PRODUCT: Ripple
+STAGE: 3
+STATUS: PASS
+USER-FACING WORKING FLOWS: From a recipe, Preview and run asks for values and a checkbox on every step. Submitting "Split a bill fairly" with 80, 20, and 4 people stores a succeeded run whose message is "Each person pays $24.00." Reloading shows the same record. People = 0 or missing consent does not create a run. The same submit key does not create a second run. Pack a list pauses before writing, and Stop cancels it with no saved checklist. Approving that save writes a row in Ripple's database. Retry re-runs a failed formula and increments the attempt. My Runs and Profile show the guest session. Another browser gets a 404 for the run URL.
+UI/UX: Inspected the run form at 390px after a validation error, the console at 1440px, and My Runs at 390px (docs/screenshots/03-*). Status text comes from saved rows. The console shows inputs, tip 16, and total 96. Times are labeled UTC. Create stays switched off.
+DATA + SECURITY: Migration 0003 adds sessions, runs, run steps, approvals, and demo submissions. Cookies are httpOnly and SameSite=Lax, and Secure only on HTTPS. Runs are readable only by the initiating user. Consent rows are written before execution. Unknown blocks fail the step and the run. A succeeded user run is what "Verified …" on the recipe means. The published version row itself is not rewritten.
+TESTS: npm run lint -> pass. npm run typecheck -> pass. npm test -> pass, 16 tests. npm run test:e2e -> pass, 3 Chromium tests (explore, bill run plus outsider 404, checklist stop).
+REAL INTEGRATIONS: SQLite and in-process decimal math | SANDBOX: the demo-form save, which writes only to Ripple | DISABLED: email, OAuth, payments, recipe editor
+FILES CHANGED: runner, guest sessions, run API, preview and console, My Runs, Profile, tests, screenshots.
+OPEN BUGS/RISKS: Guest sessions do not move between devices. The run console shows results as JSON. A long mobile page can sit under the fixed nav until you scroll the extra bottom padding. Hosted Postgres is still not wired.
+NEXT STAGE PROPOSAL: Email-and-password accounts, a draft editor limited to the four blocks, a dry run, and publish v1 then v2 without changing older runs.
+AWAITING APPROVAL: NO — the owner pre-approved stages 0–6. This report is the stage record.
+```
 
 ## Stage 2 report
 

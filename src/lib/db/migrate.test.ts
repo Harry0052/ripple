@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { migrationsDirectory } from "./migrate";
 import { openDatabase } from "./client";
 
 const dirs: string[] = [];
@@ -28,7 +29,8 @@ describe("migrate", () => {
     const applied = sqlite
       .prepare("SELECT COUNT(*) AS count FROM schema_migrations")
       .get() as { count: number };
-    expect(applied.count).toBe(2);
+    const files = fs.readdirSync(migrationsDirectory()).filter((file) => file.endsWith(".sql"));
+    expect(applied.count).toBe(files.length);
     sqlite.close();
   });
 });

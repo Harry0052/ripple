@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { categoryLabel } from "@/lib/categories";
 import type { WorkflowRead } from "@/lib/workflows/detail";
 
@@ -49,13 +48,15 @@ export function WorkflowDetail({ detail }: { detail: Exclude<WorkflowRead, { sta
         <h2 id="run-heading" className="font-display text-3xl tracking-tight">
           Preview and run
         </h2>
-        <p id="run-off" className="mt-2 max-w-xl text-base leading-7 text-muted">
-          Running is switched off. You can read every step and permission. Nothing starts from this
-          page.
+        <p className="mt-2 max-w-xl text-base leading-7 text-muted">
+          Nothing starts on this page. Next you enter the values and allow every step.
         </p>
-        <Button type="button" disabled aria-describedby="run-off" className="mt-4">
+        <Link
+          href={`/w/${detail.slug}/run`}
+          className="mt-4 inline-flex min-h-12 items-center rounded-full bg-lime px-5 font-medium text-ink"
+        >
           Preview and run
-        </Button>
+        </Link>
       </section>
 
       <div className="mt-6 grid items-start gap-6 md:grid-cols-[minmax(0,1.45fr)_minmax(16rem,0.8fr)]">

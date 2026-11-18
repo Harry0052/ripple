@@ -6,10 +6,10 @@ export const NAV_ITEMS = [
     reason: "Search the public recipe library.",
   },
   {
-    href: "#not-built",
+    href: "/runs",
     label: "My Runs",
-    available: false,
-    reason: "Run history is not built yet.",
+    available: true,
+    reason: "Your private run history.",
   },
   {
     href: "#not-built",
@@ -18,9 +18,9 @@ export const NAV_ITEMS = [
     reason: "The recipe editor is not built yet.",
   },
   {
-    href: "#not-built",
+    href: "/profile",
     label: "Profile",
-    available: false,
-    reason: "Accounts are not built yet.",
+    available: true,
+    reason: "The session stored in this browser.",
   },
 ] as const;

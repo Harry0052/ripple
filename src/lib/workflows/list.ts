@@ -80,7 +80,12 @@ export function listPublishedWorkflows(
       updatedAt: workflows.updatedAt,
       version: workflowVersions.version,
       permissionsJson: workflowVersions.permissionsJson,
-      lastVerifiedAt: workflowVersions.lastVerifiedAt,
+      lastVerifiedAt: sql<string | null>`(
+        SELECT MAX(completed_at) FROM runs
+        WHERE runs.version_id = ${workflowVersions.id}
+          AND runs.status = 'succeeded'
+          AND runs.purpose = 'user'
+      )`,
     })
     .from(workflows)
     .innerJoin(users, eq(users.id, workflows.ownerId))

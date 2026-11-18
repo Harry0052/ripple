@@ -19,7 +19,11 @@ export function PrimaryNav({ variant }: { variant: "desktop" | "mobile" }) {
     return (
       <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">
         {NAV_ITEMS.map((item) => {
-          const current = item.available && pathname === item.href;
+          const current =
+            item.available &&
+            (item.label === "Explore"
+              ? pathname === "/" || pathname.startsWith("/w/")
+              : pathname === item.href || pathname.startsWith(`${item.href}/`));
           return (
             <Link
               key={item.label}
@@ -52,7 +56,11 @@ export function PrimaryNav({ variant }: { variant: "desktop" | "mobile" }) {
       <ul className="mx-auto grid max-w-lg grid-cols-4">
         {NAV_ITEMS.map((item) => {
           const Icon = ICONS[item.label];
-          const current = item.available && pathname === item.href;
+          const current =
+            item.available &&
+            (item.label === "Explore"
+              ? pathname === "/" || pathname.startsWith("/w/")
+              : pathname === item.href || pathname.startsWith(`${item.href}/`));
           return (
             <li key={item.label}>
               <Link

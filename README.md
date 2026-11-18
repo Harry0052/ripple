@@ -25,9 +25,9 @@ Open [http://127.0.0.1:3000](http://127.0.0.1:3000).
 | Explore search and topic filters | Real. Reads published public rows from SQLite. |
 | Three DEMO recipes and their detail pages | Real. Steps, permissions, risks, and version are stored. |
 | Empty search and unknown addresses | Real. |
-| Run button | Visible and disabled. Execution is not built. |
-| My Runs, Create, Profile | Switched off, with an explanation in the footer. |
-| Accounts, email, OAuth, payments | Not configured. Disabled, not simulated. |
+| Run a DEMO recipe | Real, after you allow every step. Results are stored in SQLite. |
+| My Runs and Profile | Real for the guest session in this browser. |
+| Create, email signup, OAuth, payments | Switched off. Not simulated. |
 
 Hosted Postgres (for example Supabase) and Vercel are the intended later deploy path. This checkout is verified with SQLite only.
 

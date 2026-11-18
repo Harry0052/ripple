@@ -5,6 +5,8 @@ export const users = sqliteTable("users", {
   handle: text("handle").notNull().unique(),
   displayName: text("display_name").notNull(),
   kind: text("kind").notNull(),
+  email: text("email"),
+  passwordHash: text("password_hash"),
   createdAt: text("created_at").notNull(),
 });
 
@@ -70,3 +72,76 @@ export const workflowSteps = sqliteTable(
     index("workflow_steps_version_idx").on(table.versionId),
   ],
 );
+
+export const sessions = sqliteTable("sessions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id),
+  tokenHash: text("token_hash").notNull().unique(),
+  createdAt: text("created_at").notNull(),
+  expiresAt: text("expires_at").notNull(),
+});
+
+export const runs = sqliteTable("runs", {
+  id: text("id").primaryKey(),
+  versionId: text("version_id")
+    .notNull()
+    .references(() => workflowVersions.id),
+  initiatedBy: text("initiated_by")
+    .notNull()
+    .references(() => users.id),
+  status: text("status").notNull(),
+  purpose: text("purpose").notNull(),
+  idempotencyKey: text("idempotency_key").notNull(),
+  inputHash: text("input_hash").notNull(),
+  inputsJson: text("inputs_json").notNull(),
+  contextJson: text("context_json").notNull(),
+  startedAt: text("started_at").notNull(),
+  completedAt: text("completed_at"),
+  cancelledAt: text("cancelled_at"),
+});
+
+export const runSteps = sqliteTable("run_steps", {
+  id: text("id").primaryKey(),
+  runId: text("run_id")
+    .notNull()
+    .references(() => runs.id),
+  stepId: text("step_id")
+    .notNull()
+    .references(() => workflowSteps.id),
+  status: text("status").notNull(),
+  safeResultJson: text("safe_result_json"),
+  error: text("error"),
+  attempt: integer("attempt").notNull(),
+  startedAt: text("started_at"),
+  finishedAt: text("finished_at"),
+});
+
+export const approvals = sqliteTable("approvals", {
+  id: text("id").primaryKey(),
+  runId: text("run_id")
+    .notNull()
+    .references(() => runs.id),
+  stepId: text("step_id").notNull(),
+  actorId: text("actor_id")
+    .notNull()
+    .references(() => users.id),
+  decision: text("decision").notNull(),
+  consentText: text("consent_text").notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
+export const demoSubmissions = sqliteTable("demo_submissions", {
+  id: text("id").primaryKey(),
+  runId: text("run_id")
+    .notNull()
+    .unique()
+    .references(() => runs.id),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id),
+  title: text("title").notNull(),
+  payloadJson: text("payload_json").notNull(),
+  createdAt: text("created_at").notNull(),
+});

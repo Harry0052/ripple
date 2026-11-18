@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { RippleDb } from "@/lib/db/client";
 import { users, workflowSteps, workflowVersions, workflows } from "@/lib/db/schema";
 import { formatUtc, verifiedLabel } from "@/lib/time";
@@ -58,7 +58,12 @@ export function getPublicWorkflow(db: RippleDb, slug: string): WorkflowRead {
       successCriteria: workflowVersions.successCriteria,
       risks: workflowVersions.risks,
       publishedAt: workflowVersions.publishedAt,
-      lastVerifiedAt: workflowVersions.lastVerifiedAt,
+      lastVerifiedAt: sql<string | null>`(
+        SELECT MAX(completed_at) FROM runs
+        WHERE runs.version_id = ${workflowVersions.id}
+          AND runs.status = 'succeeded'
+          AND runs.purpose = 'user'
+      )`,
     })
     .from(workflows)
     .innerJoin(users, eq(users.id, workflows.ownerId))

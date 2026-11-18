@@ -33,7 +33,10 @@ test("a visitor can search and inspect a stored demo recipe", async ({ page }) =
   await expect(page.getByRole("heading", { name: "Permissions" })).toBeVisible();
   await expect(page.getByText("bill * tipPercent / 100")).toBeVisible();
   await expect(page.getByText("After a separate approval")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Preview and run" })).toBeDisabled();
+  await expect(page.getByRole("link", { name: "Preview and run" })).toHaveAttribute(
+    "href",
+    "/w/split-a-bill/run",
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: "docs/screenshots/02-detail-bill-390.png" });
   await page.setViewportSize({ width: 1440, height: 900 });
