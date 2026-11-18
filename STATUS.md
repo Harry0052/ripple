@@ -2,7 +2,24 @@
 
 Working codename in the build brief: DONE. The product name in code, UI, and docs is **Ripple**.
 
-Current stage: **1 complete**. Next: Stage 2, persisted recipes and the detail page.
+Current stage: **2 complete**. Next: Stage 3, run one recipe end to end.
+
+## Stage 2 report
+
+```text
+PRODUCT: Ripple
+STAGE: 2
+STATUS: PASS
+USER-FACING WORKING FLOWS: Explore lists three seeded DEMO recipes from SQLite. Search and topic filters narrow that list. Empty search and the unused "Saved notes" topic say nothing matches. Opening a card shows steps, the exact permission lines, prerequisites, success criteria, risks, version, publisher, and published time. An unknown or private slug is a 404. Run stays disabled and says nothing will start.
+UI/UX: Inspected Explore and the bill recipe at 390×844 and 1440×900 (docs/screenshots/02-*). Cards show time, creator, permissions, and "Not verified by a run yet". Desktop detail is a two-column reading layout. Mobile puts permissions above the step list. The run control is visibly disabled with the reason in the same section. Topic chips wrap. No sample cards are invented beyond the three labeled DEMO rows.
+DATA + SECURITY: Migration 0002 adds workflow_versions and workflow_steps. Seed is idempotent and validates steps before insert. Explore and detail only return public published versions. A private slug test returns not-found. An unknown block stored in a step makes that recipe unreadable and not runnable. Versions are inserted once; the seed does not rewrite them.
+TESTS: npm run lint -> pass. npm run typecheck -> pass. npm test -> pass, 9 tests. npm run test:e2e -> pass, 1 Chromium test (the command also runs the production build).
+REAL INTEGRATIONS: SQLite | SANDBOX: none | DISABLED: recipe execution, accounts, email, OAuth, payments
+FILES CHANGED: version/step schema, three DEMO recipes, detail page, card links, tests, screenshots, README.
+OPEN BUGS/RISKS: On a phone the first recipe card continues under the bottom nav, so the rest of the card is reached by scrolling. "Last verified" is honestly empty until a run exists. Hosted Postgres is still not wired.
+NEXT STAGE PROPOSAL: Consent, validation, and a persisted run of "Split a bill fairly", including bad input, duplicate submit, stop, and retry.
+AWAITING APPROVAL: NO — the owner pre-approved stages 0–6. This report is the stage record.
+```
 
 ## Stage 1 report
 

@@ -28,7 +28,7 @@ describe("migrate", () => {
     const applied = sqlite
       .prepare("SELECT COUNT(*) AS count FROM schema_migrations")
       .get() as { count: number };
-    expect(applied.count).toBe(1);
+    expect(applied.count).toBe(2);
     sqlite.close();
   });
 });

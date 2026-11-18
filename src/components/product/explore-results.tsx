@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { categoryLabel } from "@/lib/categories";
 import type { ExploreResult } from "@/lib/workflows/list";
@@ -37,7 +38,7 @@ export function ExploreResults({ result }: { result: ExploreResult }) {
             : "No public recipe is filed under that topic."}{" "}
           {result.publishedCount === 0
             ? "The library itself has no published recipes yet."
-            : "Clear the search to see what is published."}
+            : "Clear the filters to see what is published."}
         </p>
       </section>
     );
@@ -49,9 +50,17 @@ export function ExploreResults({ result }: { result: ExploreResult }) {
       <ul className="grid gap-4 md:grid-cols-2">
         {result.workflows.map((workflow) => (
           <li key={workflow.id}>
-            <article className="flex h-full flex-col rounded-3xl border border-line border-l-4 border-l-lime bg-card p-5">
+            <Link
+              href={`/w/${workflow.slug}`}
+              className="flex h-full flex-col rounded-3xl border border-line border-l-4 border-l-lime bg-card p-5 hover:border-ink"
+            >
               <div className="flex items-center justify-between gap-3">
-                {workflow.origin === "demo_seed" ? <Badge>Demo</Badge> : <span />}
+                <div className="flex items-center gap-2">
+                  {workflow.origin === "demo_seed" ? <Badge>Demo</Badge> : null}
+                  <span className="text-xs font-medium uppercase tracking-[0.14em] text-muted">
+                    v{workflow.version}
+                  </span>
+                </div>
                 <p className="text-sm tabular-nums text-muted">{workflow.estimatedMinutes} min</p>
               </div>
               <h3 className="mt-3 font-display text-[1.7rem] leading-tight tracking-tight">
@@ -62,10 +71,17 @@ export function ExploreResults({ result }: { result: ExploreResult }) {
                 {categoryLabel(workflow.category)} · {workflow.creatorName}
                 <span className="text-muted"> @{workflow.creatorHandle}</span>
               </p>
-              <p className="mt-3 text-sm leading-6 text-muted">
-                Recipe details are not available in this build, so this card does not open a page.
-              </p>
-            </article>
+              {workflow.permissionNote ? (
+                <p className="mt-3 text-sm text-danger">{workflow.permissionNote}</p>
+              ) : (
+                <ul className="mt-3 space-y-1 text-sm leading-6 text-ink">
+                  {workflow.permissions.map((permission) => (
+                    <li key={permission}>{permission}</li>
+                  ))}
+                </ul>
+              )}
+              <p className="mt-3 text-sm text-muted">{workflow.verified}</p>
+            </Link>
           </li>
         ))}
       </ul>

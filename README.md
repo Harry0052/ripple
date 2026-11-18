@@ -2,7 +2,7 @@
 
 Shareable actions, not just shareable content. A Ripple recipe shows every step before it runs and keeps a record of what happened.
 
-This repository is a local-first Next.js app. Stage 1 is the shell and Explore. Explore reads SQLite. With a fresh database the library is empty on purpose — Ripple does not invent recipes.
+This repository is a local-first Next.js app. Explore and recipe pages read SQLite. `npm run db:setup` seeds three DEMO recipes. They can be inspected. They cannot be run yet.
 
 ## Quickstart
 
@@ -23,9 +23,10 @@ Open [http://127.0.0.1:3000](http://127.0.0.1:3000).
 | Area | State |
 | --- | --- |
 | Explore search and topic filters | Real. Reads published public rows from SQLite. |
-| Empty library and unknown addresses | Real. |
-| My Runs, Create, Profile | Switched off, with an explanation on the page. |
-| Running a recipe | Not built. |
+| Three DEMO recipes and their detail pages | Real. Steps, permissions, risks, and version are stored. |
+| Empty search and unknown addresses | Real. |
+| Run button | Visible and disabled. Execution is not built. |
+| My Runs, Create, Profile | Switched off, with an explanation in the footer. |
 | Accounts, email, OAuth, payments | Not configured. Disabled, not simulated. |
 
 Hosted Postgres (for example Supabase) and Vercel are the intended later deploy path. This checkout is verified with SQLite only.

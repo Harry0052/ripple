@@ -40,6 +40,7 @@ function insertWorkflow(
        ON CONFLICT(id) DO NOTHING`,
     )
     .run("user-demo", "ripple.demo", "Ripple Demo", now);
+  const versionId = row.published === false ? null : `ver-${row.id}`;
   sqlite
     .prepare(
       `INSERT INTO workflows (
@@ -54,10 +55,20 @@ function insertWorkflow(
       row.summary ?? "A stored recipe.",
       row.category ?? "everyday-math",
       row.visibility,
-      row.published === false ? null : `ver-${row.id}`,
+      versionId,
       now,
       now,
     );
+  if (versionId) {
+    sqlite
+      .prepare(
+        `INSERT INTO workflow_versions (
+           id, workflow_id, version, status, permissions_json, prerequisites,
+           success_criteria, risks, test_status, published_at, last_verified_at, created_at
+         ) VALUES (?, ?, 1, 'published', ?, 'None', 'A result', 'None', 'untested', ?, NULL, ?)`,
+      )
+      .run(versionId, row.id, JSON.stringify({ items: ["Uses values you type"] }), now, now);
+  }
 }
 
 describe("listPublishedWorkflows", () => {

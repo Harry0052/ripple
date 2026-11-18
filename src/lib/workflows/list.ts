@@ -1,7 +1,9 @@
 import { and, count, desc, eq, isNotNull, or, sql } from "drizzle-orm";
 import { isCategoryId } from "@/lib/categories";
 import type { RippleDb } from "@/lib/db/client";
-import { users, workflows } from "@/lib/db/schema";
+import { users, workflowVersions, workflows } from "@/lib/db/schema";
+import { permissionsSchema } from "@/lib/workflows/steps";
+import { verifiedLabel } from "@/lib/time";
 
 export type ExploreCard = {
   id: string;
@@ -14,6 +16,10 @@ export type ExploreCard = {
   creatorHandle: string;
   creatorName: string;
   updatedAt: string;
+  version: number;
+  permissions: string[];
+  permissionNote: string | null;
+  verified: string;
 };
 
 export type ExploreStatus = "results" | "empty-library" | "empty-search" | "unknown-category";
@@ -72,12 +78,43 @@ export function listPublishedWorkflows(
       creatorHandle: users.handle,
       creatorName: users.displayName,
       updatedAt: workflows.updatedAt,
+      version: workflowVersions.version,
+      permissionsJson: workflowVersions.permissionsJson,
+      lastVerifiedAt: workflowVersions.lastVerifiedAt,
     })
     .from(workflows)
     .innerJoin(users, eq(users.id, workflows.ownerId))
+    .innerJoin(workflowVersions, eq(workflowVersions.id, workflows.publishedVersionId))
     .where(and(...filters))
     .orderBy(desc(workflows.updatedAt))
-    .all();
+    .all()
+    .map((row) => {
+      let permissions: string[] = [];
+      let permissionNote: string | null = null;
+      try {
+        const parsed = permissionsSchema.safeParse(JSON.parse(row.permissionsJson));
+        if (parsed.success) permissions = parsed.data.items;
+        else permissionNote = "Permissions could not be read";
+      } catch {
+        permissionNote = "Permissions could not be read";
+      }
+      return {
+        id: row.id,
+        slug: row.slug,
+        title: row.title,
+        summary: row.summary,
+        category: row.category,
+        estimatedMinutes: row.estimatedMinutes,
+        origin: row.origin,
+        creatorHandle: row.creatorHandle,
+        creatorName: row.creatorName,
+        updatedAt: row.updatedAt,
+        version: row.version,
+        permissions,
+        permissionNote,
+        verified: verifiedLabel(row.lastVerifiedAt),
+      };
+    });
 
   if (rows.length > 0) {
     return { status: "results", workflows: rows, query, category, publishedCount };
